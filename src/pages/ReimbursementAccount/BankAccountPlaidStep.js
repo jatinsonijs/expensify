@@ -15,15 +15,22 @@ import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import Form from '../../components/Form';
 import styles from '../../styles/styles';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 
 const propTypes = {
+    /** The bank account currently in setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
     receivedRedirectURI: PropTypes.string,
 
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
 
-    onBack: PropTypes.func,
+    /** Goes to the previous step */
+    onBackButtonPress: PropTypes.func.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -31,7 +38,6 @@ const propTypes = {
 const defaultProps = {
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
-    onBack: () => {},
 };
 
 class BankAccountPlaidStep extends React.Component {
@@ -65,14 +71,14 @@ class BankAccountPlaidStep extends React.Component {
         const selectedPlaidAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccountID', '');
 
         return (
-            <>
+            <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.common.bankAccount')}
                     stepCounter={{step: 1, total: 5}}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
-                    onBackButtonPress={this.props.onBack}
+                    onBackButtonPress={this.props.onBackButtonPress}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
@@ -96,7 +102,7 @@ class BankAccountPlaidStep extends React.Component {
                         selectedPlaidAccountID={selectedPlaidAccountID}
                     />
                 </Form>
-            </>
+            </ScreenWrapper>
         );
     }
 }

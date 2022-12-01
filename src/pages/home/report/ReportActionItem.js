@@ -173,6 +173,7 @@ class ReportActionItem extends Component {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             return <RenameAction action={this.props.action} />;
         }
+
         return (
             <PressableWithSecondaryInteraction
                 ref={el => this.popoverAnchor = el}

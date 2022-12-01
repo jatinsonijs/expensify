@@ -81,9 +81,6 @@ RequestorOnfidoStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
         onfidoToken: {
             key: ONYXKEYS.ONFIDO_TOKEN,
         },

@@ -19,14 +19,18 @@ import exampleCheckImage from './exampleCheckImage';
 import Form from '../../components/Form';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 
 const propTypes = {
-    onBack: PropTypes.func,
-    ...withLocalizePropTypes,
-};
+    /** The bank account currently in setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 
-const defaultProps = {
-    onBack: () => {},
+    /** Goes to the previous step */
+    onBackButtonPress: PropTypes.func.isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 class BankAccountManualStep extends React.Component {
@@ -73,14 +77,14 @@ class BankAccountManualStep extends React.Component {
         const shouldDisableInputs = Boolean(ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID'));
 
         return (
-            <>
+            <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.common.bankAccount')}
                     stepCounter={{step: 1, total: 5}}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
-                    onBackButtonPress={this.props.onBack}
+                    onBackButtonPress={this.props.onBackButtonPress}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
@@ -138,20 +142,15 @@ class BankAccountManualStep extends React.Component {
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'acceptTerms', false)}
                     />
                 </Form>
-            </>
+            </ScreenWrapper>
         );
     }
 }
 
 BankAccountManualStep.propTypes = propTypes;
-BankAccountManualStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        // Needed to retrieve errorFields
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },

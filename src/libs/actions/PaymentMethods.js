@@ -37,19 +37,6 @@ function continueSetup() {
     kycWallRef.current.continue();
 }
 
-/**
- * Clears local reimbursement account if it doesn't exist in bankAccounts
- * @param {Object[]} bankAccounts
- */
-function cleanLocalReimbursementData(bankAccounts) {
-    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
-
-    // We check if the bank account list doesn't have the reimbursementAccount
-    if (!_.find(bankAccounts, bankAccount => bankAccount.bankAccountID === bankAccountID)) {
-        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
-    }
-}
-
 function openPaymentsPage() {
     const onyxData = {
         optimisticData: [
@@ -359,7 +346,6 @@ export {
     resetWalletTransferData,
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
-    cleanLocalReimbursementData,
     hasPaymentMethodError,
     clearDeletePaymentMethodError,
     clearAddPaymentMethodError,

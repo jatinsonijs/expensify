@@ -21,6 +21,7 @@ import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
+import ScreenWrapper from '../../components/ScreenWrapper';
 
 const propTypes = {
     /** Name of the company */
@@ -31,6 +32,9 @@ const propTypes = {
     /** Bank account currently in setup */
     // eslint-disable-next-line react/no-unused-prop-types
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+
+    /** Goes to the previous step */
+    onBackButtonPress: PropTypes.func.isRequired,
 };
 
 class ACHContractStep extends React.Component {
@@ -169,15 +173,12 @@ class ACHContractStep extends React.Component {
 
     render() {
         return (
-            <>
+            <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('beneficialOwnersStep.additionalInformation')}
                     stepCounter={{step: 4, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={() => {
-                        BankAccounts.clearOnfidoToken();
-                        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
-                    }}
+                    onBackButtonPress={this.props.onBackButtonPress}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
@@ -289,7 +290,7 @@ class ACHContractStep extends React.Component {
                         errorText={this.getErrorText('certifyTrueInformation')}
                     />
                 </ReimbursementAccountForm>
-            </>
+            </ScreenWrapper>
         );
     }
 }
@@ -298,9 +299,6 @@ ACHContractStep.propTypes = propTypes;
 export default compose(
     withLocalize,
     withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },

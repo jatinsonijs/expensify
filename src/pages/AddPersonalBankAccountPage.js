@@ -114,7 +114,10 @@ class AddPersonalBankAccountPage extends React.Component {
                         <FixedFooter>
                             <Button
                                 text={this.props.translate('common.continue')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
+                                onPress={() => {
+                                    BankAccounts.clearPersonalBankAccount();
+                                    Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+                                }}
                                 style={[styles.mt4]}
                                 iconStyles={[styles.mr5]}
                                 success

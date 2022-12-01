@@ -28,6 +28,7 @@ import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
 import plaidDataPropTypes from './plaidDataPropTypes';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import ScreenWrapper from '../../components/ScreenWrapper';
 
 const propTypes = {
     /** Contains plaid data */
@@ -39,19 +40,18 @@ const propTypes = {
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
 
-    /** Once the user has selected a sub step, clicking on back button should redirect to the continue button screen. */
-    /** As such, we need to expose this handler */
-    onSubStepBack: PropTypes.func,
-
     /** The bank account currently in setup */
     /* eslint-disable-next-line react/no-unused-prop-types */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 
     /** Object with various information about the user */
     user: PropTypes.shape({
         /** Is the user account validated? */
         validated: PropTypes.bool,
     }),
+
+    /** Goes to the previous step */
+    onBackButtonPress: PropTypes.func.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -62,8 +62,6 @@ const defaultProps = {
     plaidData: {
         isPlaidDisabled: false,
     },
-    onSubStepBack: () => {},
-    reimbursementAccount: {},
     user: {},
 };
 
@@ -77,103 +75,108 @@ const BankAccountStep = (props) => {
     const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
-        return <BankAccountManualStep onBack={props.onSubStepBack} />;
+        return (
+            <BankAccountManualStep
+                reimbursementAccount={props.reimbursementAccount}
+                onBackButtonPress={props.onBackButtonPress}
+            />
+        );
     }
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-        return <BankAccountPlaidStep onBack={props.onSubStepBack} />;
+        return (
+            <BankAccountPlaidStep
+                reimbursementAccount={props.reimbursementAccount}
+                onBackButtonPress={props.onBackButtonPress}
+            />
+        );
     }
 
     return (
-        <View style={[styles.flex1, styles.justifyContentBetween]}>
-            <HeaderWithCloseButton
-                title={props.translate('workspace.common.bankAccount')}
-                stepCounter={subStep ? {step: 1, total: 5} : undefined}
-                onCloseButtonPress={Navigation.dismissModal}
-                onBackButtonPress={() => {
-                    // If we have a subStep then we will remove otherwise we will go back
-                    if (subStep) {
-                        BankAccounts.setBankAccountSubStep(null);
-                        return;
-                    }
-                    Navigation.goBack();
-                }}
-                shouldShowGetAssistanceButton
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                shouldShowBackButton
-            />
-            <ScrollView style={[styles.flex1]}>
-                <Section
-                    icon={Illustrations.MoneyWings}
-                    title={props.translate('workspace.bankAccount.streamlinePayments')}
-                >
-                    <View style={[styles.mv3]}>
-                        <Text>{props.translate('bankAccount.toGetStarted')}</Text>
-                    </View>
-                    {plaidDesktopMessage && (
-                        <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
-                            <TextLink href={bankAccountRoute}>
-                                {props.translate(plaidDesktopMessage)}
-                            </TextLink>
+        <ScreenWrapper>
+            <View style={[styles.flex1, styles.justifyContentBetween]}>
+                <HeaderWithCloseButton
+                    title={props.translate('workspace.common.bankAccount')}
+                    stepCounter={subStep ? {step: 1, total: 5} : undefined}
+                    onCloseButtonPress={Navigation.dismissModal}
+                    onBackButtonPress={props.onBackButtonPress}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
+                    shouldShowBackButton
+                />
+                <ScrollView style={[styles.flex1]}>
+                    <Section
+                        icon={Illustrations.MoneyWings}
+                        title={props.translate('workspace.bankAccount.streamlinePayments')}
+                    >
+                        <View style={[styles.mv3]}>
+                            <Text>{props.translate('bankAccount.toGetStarted')}</Text>
                         </View>
-                    )}
-                    <Button
-                        icon={Expensicons.Bank}
-                        text={props.translate('bankAccount.connectOnlineWithPlaid')}
-                        onPress={() => {
-                            BankAccounts.clearPlaid();
-                            BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-                        }}
-                        disabled={props.plaidData.isPlaidDisabled || !props.user.validated}
-                        style={[styles.mt4]}
-                        iconStyles={[styles.buttonCTAIcon]}
-                        shouldShowRightIcon
-                        success
-                        large
-                    />
-                    {props.error && (
-                        <Text style={[styles.formError, styles.mh5]}>
-                            {props.error}
-                        </Text>
-                    )}
-                    <View style={[styles.mv3]}>
-                        <MenuItem
-                            icon={Expensicons.Connect}
-                            title={props.translate('bankAccount.connectManually')}
-                            disabled={!props.user.validated}
-                            onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
+                        {plaidDesktopMessage && (
+                            <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
+                                <TextLink href={bankAccountRoute}>
+                                    {props.translate(plaidDesktopMessage)}
+                                </TextLink>
+                            </View>
+                        )}
+                        <Button
+                            icon={Expensicons.Bank}
+                            text={props.translate('bankAccount.connectOnlineWithPlaid')}
+                            onPress={() => {
+                                BankAccounts.clearPlaid();
+                                BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+                            }}
+                            disabled={props.plaidData.isPlaidDisabled || !props.user.validated}
+                            style={[styles.mt4]}
+                            iconStyles={[styles.buttonCTAIcon]}
                             shouldShowRightIcon
-                            iconFill={themeColors.success}
-                            wrapperStyle={[styles.cardMenuItem]}
+                            success
+                            large
                         />
-                    </View>
-                </Section>
-                {!props.user.validated && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
-                        <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                        <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
-                            {props.translate('bankAccount.validateAccountError')}
-                        </Text>
-                    </View>
-                )}
-                <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
-                    <TextLink href="https://use.expensify.com/privacy">
-                        {props.translate('common.privacy')}
-                    </TextLink>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        <TextLink
-                            // eslint-disable-next-line max-len
-                            href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
-                        >
-                            {props.translate('bankAccount.yourDataIsSecure')}
+                        {props.error && (
+                            <Text style={[styles.formError, styles.mh5]}>
+                                {props.error}
+                            </Text>
+                        )}
+                        <View style={[styles.mv3]}>
+                            <MenuItem
+                                icon={Expensicons.Connect}
+                                title={props.translate('bankAccount.connectManually')}
+                                disabled={!props.user.validated}
+                                onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
+                                shouldShowRightIcon
+                                iconFill={themeColors.success}
+                                wrapperStyle={[styles.cardMenuItem]}
+                            />
+                        </View>
+                    </Section>
+                    {!props.user.validated && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
+                            <Icon src={Expensicons.Exclamation} fill={colors.red} />
+                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
+                                {props.translate('bankAccount.validateAccountError')}
+                            </Text>
+                        </View>
+                    )}
+                    <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
+                        <TextLink href="https://use.expensify.com/privacy">
+                            {props.translate('common.privacy')}
                         </TextLink>
-                        <View style={[styles.ml1]}>
-                            <Icon src={Expensicons.Lock} fill={colors.blue} />
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <TextLink
+                                // eslint-disable-next-line max-len
+                                href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
+                            >
+                                {props.translate('bankAccount.yourDataIsSecure')}
+                            </TextLink>
+                            <View style={[styles.ml1]}>
+                                <Icon src={Expensicons.Lock} fill={colors.blue} />
+                            </View>
                         </View>
                     </View>
-                </View>
-            </ScrollView>
-        </View>
+                </ScrollView>
+            </View>
+        </ScreenWrapper>
     );
 };
 
@@ -186,9 +189,6 @@ export default compose(
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
-        },
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         plaidData: {
             key: ONYXKEYS.PLAID_DATA,

@@ -1,13 +1,12 @@
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as store from './store';
 import * as API from '../../API';
 
 /**
  * Reset user's reimbursement account. This will delete the bank account.
+ * @param {number} bankAccountID
  */
-function resetFreePlanBankAccount() {
-    const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+function resetFreePlanBankAccount(bankAccountID) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
@@ -42,7 +41,6 @@ function resetFreePlanBankAccount() {
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                     value: {
                         achData: {},
-                        shouldShowResetModal: false,
                     },
                 },
                 {

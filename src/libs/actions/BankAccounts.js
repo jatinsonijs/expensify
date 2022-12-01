@@ -28,13 +28,14 @@ export {
     acceptWalletTerms,
 } from './Wallet';
 
-function clearPersonalBankAccount() {
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
-}
-
 function clearPlaid() {
     Onyx.set(ONYXKEYS.PLAID_DATA, {});
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+}
+
+function clearPersonalBankAccount() {
+    clearPlaid();
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
 }
 
 function updatePlaidData(plaidData) {

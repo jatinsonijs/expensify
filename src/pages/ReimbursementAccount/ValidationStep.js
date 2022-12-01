@@ -1,7 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import styles from '../../styles/styles';
@@ -16,7 +15,6 @@ import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
 import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
-import compose from '../../libs/compose';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
@@ -32,15 +30,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** Bank account currently in setup */
-    reimbursementAccount: reimbursementAccountPropTypes,
-};
-
-const defaultProps = {
-    reimbursementAccount: {
-        errorFields: {},
-        errors: {},
-        maxAttemptsReached: false,
-    },
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 };
 
 class ValidationStep extends React.Component {
@@ -221,13 +211,5 @@ class ValidationStep extends React.Component {
 }
 
 ValidationStep.propTypes = propTypes;
-ValidationStep.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-    }),
-)(ValidationStep);
+export default withLocalize(ValidationStep);
