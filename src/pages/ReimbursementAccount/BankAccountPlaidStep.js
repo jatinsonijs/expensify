@@ -12,16 +12,18 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import Form from '../../components/Form';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 
 const propTypes = {
     /** The bank account currently in setup */
-    /* eslint-disable-next-line react/no-unused-prop-types */
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
 
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
     receivedRedirectURI: PropTypes.string,
@@ -44,11 +46,23 @@ class BankAccountPlaidStep extends React.Component {
     constructor(props) {
         super(props);
         this.submit = this.submit.bind(this);
+        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
+    }
+
+    /**
+     * @param {String} fieldName
+     * @param {*} defaultValue
+     *
+     * @returns {*}
+     */
+    getDefaultStateForField(fieldName, defaultValue = '') {
+        return lodashGet(this.props.reimbursementAccountDraft, fieldName)
+            || lodashGet(this.props.reimbursementAccount, ['achData', fieldName], defaultValue);
     }
 
     submit() {
         const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
-            plaidAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccountID'),
+            plaidAccountID: this.getDefaultStateForField('plaidAccountID'),
         });
 
         const bankAccountData = {
@@ -62,13 +76,13 @@ class BankAccountPlaidStep extends React.Component {
         };
         ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
 
-        const bankAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0);
+        const bankAccountID = this.getDefaultStateForField('bankAccountID', 0);
         BankAccounts.connectBankAccountWithPlaid(bankAccountID, bankAccountData);
     }
 
     render() {
-        const bankAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0);
-        const selectedPlaidAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccountID', '');
+        const bankAccountID = this.getDefaultStateForField('bankAccountID', 0);
+        const selectedPlaidAccountID = this.getDefaultStateForField('plaidAccountID', '');
 
         return (
             <ScreenWrapper>
@@ -112,9 +126,6 @@ BankAccountPlaidStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-        },
         plaidData: {
             key: ONYXKEYS.PLAID_DATA,
         },

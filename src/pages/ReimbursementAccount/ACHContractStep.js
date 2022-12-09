@@ -3,7 +3,6 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import * as store from '../../libs/actions/ReimbursementAccount/store';
 import Text from '../../components/Text';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -16,12 +15,11 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import * as ValidationUtils from '../../libs/ValidationUtils';
-import ONYXKEYS from '../../ONYXKEYS';
-import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 
 const propTypes = {
     /** Name of the company */
@@ -30,8 +28,10 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** Bank account currently in setup */
-    // eslint-disable-next-line react/no-unused-prop-types
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
 
     /** Goes to the previous step */
     onBackButtonPress: PropTypes.func.isRequired,
@@ -43,13 +43,14 @@ class ACHContractStep extends React.Component {
 
         this.addBeneficialOwner = this.addBeneficialOwner.bind(this);
         this.submit = this.submit.bind(this);
+        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
 
         this.state = {
-            ownsMoreThan25Percent: ReimbursementAccountUtils.getDefaultStateForField(props, 'ownsMoreThan25Percent', false),
-            hasOtherBeneficialOwners: ReimbursementAccountUtils.getDefaultStateForField(props, 'hasOtherBeneficialOwners', false),
-            acceptTermsAndConditions: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTermsAndConditions', false),
-            certifyTrueInformation: ReimbursementAccountUtils.getDefaultStateForField(props, 'certifyTrueInformation', false),
-            beneficialOwners: ReimbursementAccountUtils.getDefaultStateForField(props, 'beneficialOwners', []),
+            ownsMoreThan25Percent: this.getDefaultStateForField('ownsMoreThan25Percent', false),
+            hasOtherBeneficialOwners: this.getDefaultStateForField('hasOtherBeneficialOwners', false),
+            acceptTermsAndConditions: this.getDefaultStateForField('acceptTermsAndConditions', false),
+            certifyTrueInformation: this.getDefaultStateForField('certifyTrueInformation', false),
+            beneficialOwners: this.getDefaultStateForField('beneficialOwners', []),
         };
 
         // These fields need to be filled out in order to submit the form (doesn't include IdentityForm fields)
@@ -68,6 +69,17 @@ class ACHContractStep extends React.Component {
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
         this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
+    }
+
+    /**
+     * @param {String} fieldName
+     * @param {*} defaultValue
+     *
+     * @returns {*}
+     */
+    getDefaultStateForField(fieldName, defaultValue = '') {
+        return lodashGet(this.props.reimbursementAccountDraft, fieldName)
+            || lodashGet(this.props.reimbursementAccount, ['achData', fieldName], defaultValue);
     }
 
     /**
@@ -296,11 +308,4 @@ class ACHContractStep extends React.Component {
 }
 
 ACHContractStep.propTypes = propTypes;
-export default compose(
-    withLocalize,
-    withOnyx({
-        reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-        },
-    }),
-)(ACHContractStep);
+export default withLocalize(ACHContractStep);

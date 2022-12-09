@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import {createRef} from 'react';
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
@@ -10,7 +9,6 @@ import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import * as User from './User';
-import * as store from './ReimbursementAccount/store';
 import ROUTES from '../../ROUTES';
 
 function deletePayPalMe() {

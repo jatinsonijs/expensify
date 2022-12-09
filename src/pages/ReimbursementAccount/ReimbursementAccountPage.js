@@ -33,6 +33,7 @@ import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -40,6 +41,9 @@ const propTypes = {
 
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
 
     /** The token required to initialize the Onfido SDK */
     onfidoToken: PropTypes.string,
@@ -77,6 +81,7 @@ const defaultProps = {
         shouldHideContinueSetupButton: false,
         shouldShowResetModal: false,
     },
+    reimbursementAccountDraft: {},
     onfidoToken: '',
     plaidLinkToken: '',
     route: {
@@ -106,13 +111,13 @@ class ReimbursementAccountPage extends React.Component {
             this.fetchData();
         }
         const currentStep = lodashGet(
-            this.props,
-            'reimbursementAccount.achData.currentStep',
+            this.props.reimbursementAccount,
+            'achData.currentStep',
             CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
         );
         const previousStep = lodashGet(
-            prevProps,
-            'reimbursementAccount.achData.currentStep',
+            prevProps.reimbursementAccount,
+            'achData.currentStep',
             CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
         );
 
@@ -188,7 +193,7 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     goBack() {
-        const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
+        const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const subStep = achData.subStep;
         const shouldShowOnfido = achData.useOnfido && this.props.onfidoToken && !achData.isOnfidoSetupComplete;
@@ -227,10 +232,8 @@ class ReimbursementAccountPage extends React.Component {
         // display. We can also specify a specific route to navigate to via route params when the component first
         // mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
         // next step.
-        const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
+        const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        const shouldShowOnfido = achData.useOnfido && this.props.onfidoToken && !achData.isOnfidoSetupComplete;
-        const hasInProgressVBBA = Boolean(achData.bankAccountID) && achData.state !== BankAccount.STATE.OPEN && achData.state !== BankAccount.STATE.LOCKED;
 
         if (this.props.reimbursementAccount.isLoading) {
             const isSubmittingVerificationsData = _.contains([
@@ -245,6 +248,8 @@ class ReimbursementAccountPage extends React.Component {
                 />
             );
         }
+
+        const hasInProgressVBBA = Boolean(achData.bankAccountID) && achData.state !== BankAccount.STATE.OPEN && achData.state !== BankAccount.STATE.LOCKED;
 
         if (this.props.reimbursementAccount.shouldShowResetModal && hasInProgressVBBA) {
             return (
@@ -269,7 +274,7 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        const throttledDate = lodashGet(this.props, 'reimbursementAccount.throttledDate');
+        const throttledDate = lodashGet(this.props.reimbursementAccount, 'throttledDate');
         if (throttledDate) {
             errorComponent = (
                 <View style={[styles.m5]}>
@@ -296,6 +301,7 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <BankAccountStep
                     reimbursementAccount={this.props.reimbursementAccount}
+                    reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                     plaidLinkOAuthToken={this.props.plaidLinkToken}
                     onBackButtonPress={this.goBack}
@@ -307,15 +313,18 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <CompanyStep
                     reimbursementAccount={this.props.reimbursementAccount}
+                    reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.goBack}
                 />
             );
         }
 
         if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
+            const shouldShowOnfido = achData.useOnfido && this.props.onfidoToken && !achData.isOnfidoSetupComplete;
             return (
                 <RequestorStep
                     reimbursementAccount={this.props.reimbursementAccount}
+                    reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     shouldShowOnfido={Boolean(shouldShowOnfido)}
                     onBackButtonPress={this.goBack}
                 />
@@ -326,6 +335,7 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <ACHContractStep
                     reimbursementAccount={this.props.reimbursementAccount}
+                    reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     companyName={achData.companyName}
                     onBackButtonPress={this.goBack}
                 />
@@ -334,7 +344,9 @@ class ReimbursementAccountPage extends React.Component {
 
         if (currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION) {
             return (
-                <ValidationStep reimbursementAccount={this.props.reimbursementAccount} />
+                <ValidationStep
+                    reimbursementAccount={this.props.reimbursementAccount}
+                />
             );
         }
 
@@ -354,6 +366,9 @@ export default compose(
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
         session: {
             key: ONYXKEYS.SESSION,

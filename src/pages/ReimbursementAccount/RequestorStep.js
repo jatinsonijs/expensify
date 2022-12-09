@@ -1,7 +1,6 @@
 import React from 'react';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -15,18 +14,20 @@ import Text from '../../components/Text';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import IdentityForm from './IdentityForm';
 import * as ValidationUtils from '../../libs/ValidationUtils';
-import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import * as Link from '../../libs/actions/Link';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
 import Form from '../../components/Form';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 
 const propTypes = {
     /** The bank account currently in setup */
-    // eslint-disable-next-line react/no-unused-prop-types
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
 
     /** If we should show Onfido flow */
     shouldShowOnfido: PropTypes.bool.isRequired,
@@ -40,19 +41,20 @@ class RequestorStep extends React.Component {
     constructor(props) {
         super(props);
 
-        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
+        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
     }
 
     /**
-     * Get default value from reimbursementAccount or achData
      * @param {String} fieldName
      * @param {*} defaultValue
-     * @returns {String}
+     *
+     * @returns {*}
      */
-    getDefaultStateForField(fieldName, defaultValue) {
-        return lodashGet(this.props, ['reimbursementAccount', 'achData', fieldName], defaultValue);
+    getDefaultStateForField(fieldName, defaultValue = '') {
+        return lodashGet(this.props.reimbursementAccountDraft, fieldName)
+            || lodashGet(this.props.reimbursementAccount, ['achData', fieldName], defaultValue);
     }
 
     /**
@@ -135,6 +137,7 @@ class RequestorStep extends React.Component {
                     <RequestorOnfidoStep
                         onComplete={() => BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true})}
                         reimbursementAccount={this.props.reimbursementAccount}
+                        reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     />
                 ) : (
                     <Form
@@ -234,11 +237,4 @@ class RequestorStep extends React.Component {
 
 RequestorStep.propTypes = propTypes;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-        },
-    }),
-)(RequestorStep);
+export default withLocalize(RequestorStep);
